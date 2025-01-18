@@ -255,13 +255,40 @@ void showMenu()
     cout << "************************" << endl;
 }
 
+void check_recipientAcnumber(string acnumber, double transferAmount, int pin, connection &C)
+{
+    try
+    {   
+        nontransaction N(C);
+        string sql = "SELECT NR_CONT FROM SOLD WHERE NR_CONT = $1";
+        result R(N.exec_params(sql, acnumber));
+        if(R.empty())
+        {
+            cout << "Cont inexistent! Va rog reincercati." << endl;
+        }
+        else
+        {
+            N.abort();
+            cout << "Suma pe care doriti sa o transferati: ";
+            cin >> transferAmount;
+            transferMoney(pin, acnumber, transferAmount, C);
+        }
+    }
+    catch (const sql_error &e)
+    {
+        cerr << "SQL error: " << e.what() << endl;
+    }
+
+    catch (const exception &e)
+    {
+        cerr << "Error: " << e.what() << endl;
+    }
+}
+
 void existingAccount(int pin, int option)
 {
     connection C("dbname=default user=postgres password=postgres hostaddr=127.0.0.1 port=5432");
         
-    cout << "Please enter your PIN: ";
-    cin >> pin;
-
     while (true)
     {
         showMenu();
@@ -298,9 +325,7 @@ void existingAccount(int pin, int option)
                 double transferAmount;
                 cout << "Cont destinatar: ";
                 cin >> acnumber;
-                cout << "Suma pe care doriti sa o transferati: ";
-                cin >> transferAmount;
-                transferMoney(pin, acnumber, transferAmount, C);
+                check_recipientAcnumber(acnumber, transferAmount, pin, C);                
                 break;
             }
                 
@@ -392,3 +417,67 @@ void adaugaUtilizatorNou(string& nume, string& prenume, string& dataNasterii, st
     cout << "Telefon: ";
     cin >> nr_telefon;
 }
+
+void check_pin(int pin, int option, connection &C)
+{
+    try
+    {   
+        nontransaction N(C);
+        string sql = "SELECT PIN FROM UTILIZATORI WHERE PIN = $1";
+        result R(N.exec_params(sql, pin));
+        if(R.empty())
+        {
+            cout << "Pin gresit! Va rog reincercati." << endl;
+        }
+        else
+            existingAccount(pin, option);
+    }
+    catch (const sql_error &e)
+    {
+        cerr << "SQL error: " << e.what() << endl;
+    }
+
+    catch (const exception &e)
+    {
+        cerr << "Error: " << e.what() << endl;
+    }
+}
+
+/*template <typename... Args>
+void check_db(Args... args, connection &C)
+{
+    try
+    {
+        if(is_integral<Args>args)
+        {
+            nontransaction N(C);
+            string sql = "SELECT PIN FROM UTILIZATORI WHERE PIN = $1";
+            result R(N.exec(sql, args));
+            if(R.empty())
+            {
+                cout << "Pin gresit! Va rog reincercati.";
+            }
+        }
+        else
+        {
+            nontransaction N(C);
+            string sql = "SELECT NR_CONT FROM SOLD WHERE NR_CONT = $1";
+            result R(N.exec(sql, args));
+            if(R.empty())
+            {
+                cout << "Contul nu a fost gasit! Va rugam reincercati.";
+            }
+        }
+        
+    }
+    catch (const sql_error &e)
+    {
+        cerr << "SQL error: " << e.what() << endl;
+    }
+
+    catch (const exception &e)
+    {
+        cerr << "Error: " << e.what() << endl;
+    }
+    
+}  poate folosita dupa ce ma mai documentez pe tema asta*/

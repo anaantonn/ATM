@@ -46,8 +46,23 @@ int main(int argc, char* argv[])
 
                 case 2:
                 {
-                    int pin, option;
-                    existingAccount(pin, option);                                      
+                    int pin;
+                    bool validInput = false;
+                    while (!validInput)
+                    {
+                        cout << "Va rugam introduceti PIN-ul: ";
+                        cin >> pin;
+                        if(cin.fail())
+                        {
+                            cout << "PIN-ul trebuie sa contina doar cifre." << endl;
+                            cin.clear();
+                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        }
+                        else
+                            validInput = true;
+                    }
+                    
+                    check_pin(pin, option, C);                        
                     break;
                 }
                 case 3:
